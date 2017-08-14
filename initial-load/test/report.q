@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS qi_reports.TEST;
+
+CREATE TABLE qi_reports.TEST AS select * from qi_src.TEST_RECONCILATION_VIEW;

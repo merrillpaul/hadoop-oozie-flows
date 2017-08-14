@@ -1,0 +1,1 @@
+create table qi_src.USER_INCREMENTAL as select * from qi_src.USER_BASE where 1 = 0;

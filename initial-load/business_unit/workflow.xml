@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+       echo time=`date +%m-%d-%Y\ %H:%M:%S`
+       select unix_timestamp('05-24-2017 14:34:59', 'MM-dd-yyyy HH:mm:ss');
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<workflow-app xmlns="uri:oozie:workflow:0.2" name="sqoop-qi-bu-init-load-wf">
+    <start to="hive-schema-node"/>
+    <action name="hive-schema-node">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare></prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>
+                schemas.q
+            </script>
+            
+        </hive>
+        <ok to="shell-runtime-node"/>
+        <error to="fail"/>
+    </action>
+
+    <action name="shell-runtime-node">
+       <shell xmlns="uri:oozie:shell-action:0.2">
+           <job-tracker>${jobTracker}</job-tracker>
+           <name-node>${nameNode}</name-node>
+           <configuration>
+               <property>
+                   <name>mapred.job.queue.name</name>
+                   <value>${queueName}</value>
+               </property>
+           </configuration>
+           <exec>echo</exec>
+           <argument>currentTime=`date +%m-%d-%Y\ %H:%M:%S`</argument>
+           <capture-output/>
+       </shell>
+       <ok to="sqoop-qi-init-load-node"/>
+       <error to="fail"/>
+   </action>
+
+
+    <action name="sqoop-qi-init-load-node">
+
+        <sqoop xmlns="uri:oozie:sqoop-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+            </prepare>
+
+            <configuration>
+
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>${jdbcUrl}</arg>
+            <arg>--username</arg>
+            <arg>${jdbcUser}</arg>
+            <arg>--password</arg>
+            <arg>${jdbcPassword}</arg>
+            <arg>--verbose</arg>
+            <arg>--query</arg>
+            <arg>select id, name, country_code,  to_char(last_updated, 'MM-dd-YYYY hh24:mi:ss') last_updated  from business_unit where $CONDITIONS</arg>
+            <arg>--target-dir</arg>
+            <arg>${nameNode}/user/${hiveTableLocation}/business_unit_base</arg>
+            <arg>-m</arg>
+            <arg>1</arg>           
+            <arg>--as-textfile</arg>
+            <arg>--hive-import</arg>
+            <arg>--hive-database</arg>
+            <arg>qi_src</arg>
+            <arg>--hive-table</arg>
+            <arg>BUSINESS_UNIT_BASE</arg>
+            <file>/user/merrill/share/conf/hive-site.xml#hive-site.xml</file>
+        </sqoop>
+       
+
+        <ok to="hive-incrementals-node"/>
+        <error to="fail"/>
+    </action>
+
+
+    <action name="hive-incrementals-node">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare></prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>
+                incrementals.q
+            </script>
+            
+        </hive>
+        <ok to="hive-incrementals-view-node"/>
+        <error to="fail"/>
+    </action>
+
+     <action name="hive-incrementals-view-node">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare></prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>
+                incrementals_view.q
+            </script>
+            
+        </hive>
+        <ok to="hive-report-node"/>
+        <error to="fail"/>
+    </action>
+
+    <action name="hive-report-node">
+        <hive xmlns="uri:oozie:hive-action:0.2">
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare></prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+            </configuration>
+            <script>
+                report.q
+            </script>
+            
+        </hive>
+        <ok to="end"/>
+        <error to="fail"/>
+    </action>
+
+    <kill name="fail">
+        <message>Sqoop qi failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <end name="end"/>
+
+</workflow-app>

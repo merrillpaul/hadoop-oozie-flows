@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS qi_reports.SUBTEST;
+
+CREATE TABLE qi_reports.SUBTEST AS select * from qi_src.SUBTEST_RECONCILATION_VIEW;

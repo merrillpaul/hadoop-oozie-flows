@@ -1,0 +1,1 @@
+create table qi_src.BUSINESS_UNIT_INCREMENTAL as select * from qi_src.BUSINESS_UNIT_BASE where 1 = 0;
