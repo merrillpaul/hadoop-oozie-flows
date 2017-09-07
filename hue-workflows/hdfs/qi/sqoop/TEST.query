@@ -1,0 +1,2 @@
+--query
+select t.id , t.name name, td.name test_domain, to_char(t.last_updated, 'MM-dd-YYYY hh24:mi:ss') last_updated  from test t , test_domain td where t.domain_id = td.id and t.last_updated  > to_date('#LAST_RUN#', 'MM-dd-YYYY hh24:mi:ss') and $CONDITIONS

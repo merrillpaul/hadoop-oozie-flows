@@ -1,0 +1,1 @@
+drop table if exists `qi_src`.${tableName}
