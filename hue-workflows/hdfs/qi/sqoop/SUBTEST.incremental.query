@@ -1,0 +1,2 @@
+--query
+select s.id, s.name, s.display_name, st.name subtest_type, to_char(s.last_updated, 'MM-dd-YYYY hh24:mi:ss') last_updated , t.id test_id from test t,  subtest s, subtest_type st where s.type_id=st.id and s.test_id = t.id and  s.last_updated  > to_date('#LAST_RUN#', 'MM-dd-YYYY hh24:mi:ss') and s.last_updated < to_date('#CURRENT_RUN#', 'MM-dd-YYYY hh24:mi:ss') and $CONDITIONS

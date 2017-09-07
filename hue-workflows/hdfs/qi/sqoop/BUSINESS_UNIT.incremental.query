@@ -1,0 +1,2 @@
+--query
+select id, name, country_code,  to_char(last_updated, 'MM-dd-YYYY hh24:mi:ss') last_updated  from business_unit where last_updated > to_date('#LAST_RUN#', 'MM-dd-YYYY hh24:mi:ss') and last_updated < to_date('#CURRENT_RUN#', 'MM-dd-YYYY hh24:mi:ss') and $CONDITIONS

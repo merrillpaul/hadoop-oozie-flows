@@ -1,0 +1,2 @@
+--query
+select pu.id, pu.first_name, pu.last_name, pinf.email, pu.entity_id, to_char(pu.last_updated,'MM-dd-YYYY hh24:mi:ss') last_updated from pearson_user pu, pearson_user_information pinf where pu.information_id = pinf.id  and  pu.last_updated  > to_date('#LAST_RUN#', 'MM-dd-YYYY hh24:mi:ss') and pu.last_updated < to_date('#CURRENT_RUN#', 'MM-dd-YYYY hh24:mi:ss') and $CONDITIONS
